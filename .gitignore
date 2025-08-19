@@ -71,3 +71,4 @@ __pycache__/
 # But do not ignore the README.md in the data and results directory
 !/data/README.md
 !/results/README.md
+!/results/website_sourcedata/README.md
