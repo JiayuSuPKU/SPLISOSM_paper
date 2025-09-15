@@ -289,6 +289,10 @@ png(
   sprintf("%s/figures/main_example/peak_Pcbp2_mouse.png", res_dir), 
   width = 7.25, height = 3, units = "in", res = 300
 )
+# pdf(
+#   sprintf("%s/figures/main_example/peak_Pcbp2_mouse.pdf", res_dir), 
+#   width = 7.25, height = 3
+# )
 plot_peaks(
   gene_name = gene_to_plot,
   ref_gtf = refseq_gtf,
@@ -333,33 +337,10 @@ for (i in seq_along(peak_to_plot)){
 p <- cowplot::plot_grid(plotlist = p_list, nrow = 1, align = 'hv')
 p
 ggsave(sprintf("%s/figures/main_example/ratio_%s_mouse.png", res_dir, gene_to_plot), p, width = 7.5, height = 2.5)
+ggsave(sprintf("%s/figures/main_example/ratio_%s_mouse.pdf", res_dir, gene_to_plot), p, width = 7.5, height = 2.5)
 
-# spatial ratio vs rbp expression
-df <- df_svs_ratio %>% filter(
-  # peak_name %in% peak_to_plot,
-  peak_name == 'Pcbp2-Event1',
-  # layer == 'ratios_obs'
-  layer == 'counts'
-) %>%
-  left_join(
-    df_rbp_expr %>% filter(layer == 'log1p', gene == 'Pcbp2'), 
-    by = c('array_row' = 'array_row', 'array_col' = 'array_col', 'barcode' = 'barcode')
-  )
-p2 <- ggplot(df, aes(x = expression, y = ratio)) + 
-  # facet_wrap(~ peak_name, scales = 'free', nrow = 1) +
-  geom_point(alpha = 0.1, color = 'gray') + 
-  stat_smooth(method = 'lm') + 
-  labs(x = 'Rbfox3 log-normalized expression', y = 'Observed ratio',
-       title = 'Pcbp2-Event1') + 
-  theme_classic() + 
-  theme(
-    text = element_text(size = 16, family = 'Arial'),
-    plot.title = element_text(hjust = 0.5, size = 16, family = 'Arial'),
-    strip.text = element_text(size = 12, family = 'Arial'),
-    strip.background = element_blank()
-  )
-p2
 
+# Event 1 vs event 2 expression
 df <- df_svs_ratio %>%
   filter(
     peak_name %in% c('Pcbp2-Event1', 'Pcbp2-Event2'),
@@ -419,6 +400,10 @@ p3
 ggsave(
   sprintf("%s/figures/main_example/%s_event_ratio.png", res_dir, gene_to_plot), 
   p3, width = 3, height = 3
+)
+ggsave(
+  sprintf("%s/figures/main_example/%s_event_ratio.pdf", res_dir, gene_to_plot), 
+  p3, width = 3.5, height = 2.8
 )
 
 ## Human PCBP2 eCLIP
@@ -609,6 +594,7 @@ p1.4 <- df_junction %>%
 p1 <- cowplot::plot_grid(p1.1, p1.2, p1.3, p1.4, nrow = 1, align = 'hv')
 p1
 ggsave(sprintf("%s/figures/main_example/GTEx_PCBP2_expr.png", res_dir), p1, width = 14, height = 3.5)
+ggsave(sprintf("%s/figures/main_example/GTEx_PCBP2_expr.pdf", res_dir), p1, width = 14, height = 3.5)
 
 ## SupFig: Celf2
 gene_to_plot <- 'Celf2'
@@ -870,6 +856,7 @@ for (i in seq_along(peak_to_plot)){
 p <- cowplot::plot_grid(plotlist = p_list, nrow = 1, align = 'hv')
 p
 ggsave(sprintf("%s/figures/svs_cds/ratio_%s.png", res_dir, gene_to_plot), p, width = 7.5, height = 2.5)
+ggsave(sprintf("%s/figures/svs_cds/ratio_%s.pdf", res_dir, gene_to_plot), p, width = 7.5, height = 2.5)
 
 ## Fig S3C: Olfm1
 gene_to_plot <- 'Olfm1'
@@ -923,6 +910,7 @@ for (i in seq_along(peak_to_plot)){
 p <- cowplot::plot_grid(plotlist = p_list, nrow = 1, align = 'hv')
 p
 ggsave(sprintf("%s/figures/svs_cds/ratio_%s.png", res_dir, gene_to_plot), p, width = 7.5, height = 2.5)
+ggsave(sprintf("%s/figures/svs_cds/ratio_%s.pdf", res_dir, gene_to_plot), p, width = 7.5, height = 2.5)
 
 ## Fig S3C: Rexo2
 gene_to_plot <- 'Rexo2'
@@ -959,7 +947,8 @@ for (i in seq_along(peak_to_plot)){
     geom_point(size = 0.5) +
     labs(color = '', title = peak_to_plot[i]) + 
     # scale_color_distiller(palette = 'Spectral') +
-    scale_color_distiller(palette = 'Reds', direction = 1) +
+    # scale_color_distiller(palette = 'Reds', direction = 1) +
+    scale_color_distiller(palette = 'Purples', direction = 1) +
     theme_void() + 
     theme(
       text = element_text(size = 16, family = 'Arial'),
@@ -975,6 +964,7 @@ for (i in seq_along(peak_to_plot)){
 p <- cowplot::plot_grid(plotlist = p_list, nrow = 1, align = 'hv')
 p
 ggsave(sprintf("%s/figures/svs_cds/ratio_%s.png", res_dir, gene_to_plot), p, width = 7.5, height = 2.5)
+ggsave(sprintf("%s/figures/svs_cds/ratio_%s.pdf", res_dir, gene_to_plot), p, width = 7.5, height = 2.5)
 
 
 ## Extended fig: Kalrn

@@ -124,8 +124,8 @@ s1 <- ggplot(df, aes(x = `pvalue_hsic-ir.ss` + 1e-300, y = `pvalue_hsic-ir` + 1e
     aes(label = gene),
     fontface = "italic"
   ) + 
-  labs(x = 'P-value (Hippocampus SlideseqV2)', y = 'P-value (CBS Visium)', 
-       title = sprintf('HSIC-IR test agreement\n(Spearman R = %.2f)', cor(
+  labs(x = 'P-value (Slide-seqV2 hippocampus)', y = 'P-value (Visium CBS)', 
+       title = sprintf('HSIC-IR test agreement\n(Spearman rho = %.2f)', cor(
          df$`pvalue_hsic-ir.ss`, df$`pvalue_hsic-ir`, method = 'spearman'
        )),
        color = 'Perplexity') + 
@@ -135,14 +135,15 @@ s1 <- ggplot(df, aes(x = `pvalue_hsic-ir.ss` + 1e-300, y = `pvalue_hsic-ir` + 1e
   scale_y_continuous(trans = c("log10", "reverse"), breaks = c(1e-05, 1e-50, 1e-100)) + 
   theme_classic() + 
   theme(
-    text = element_text(size = 14, family = 'Arial'),
-    plot.title = element_text(size = 14, family = 'Arial', hjust = 0.5),
+    text = element_text(size = 12, family = 'Arial'),
+    plot.title = element_text(size = 12, family = 'Arial', hjust = 0.5),
     legend.position = 'none',
     legend.position.inside = c(0.8, 0.7)
   ) + 
   guides(fill = "none")  
 
 ggsave(sprintf("%s/figures/sup_hippo_slideseqv2.png", res_dir), s1, width = 4.5, height = 4)
+ggsave(sprintf("%s/figures/sup_hippo_slideseqv2.pdf", res_dir), s1, width = 4.5, height = 4)
 
 ## SupFig: Venn diagrams of SV genes
 library(ggvenn)
@@ -180,8 +181,8 @@ df_kegg <- read_csv(sprintf("%s/figures/source_data/kegg_top20.csv", res_dir)) %
   mutate(
     name_cat = factor(name, levels = unique(name[order(precision_diff, decreasing = FALSE)])),
     geneset = factor(geneset, levels = c('SVE', 'SVS'), 
-                     labels = c('Spatially variably expressed but not spliced (SVENS)', 
-                                'Spatially variably spliced (SVS)'))
+                     labels = c('Spatially variably expressed but not variably processed (SVENP)', 
+                                'Spatially variably processed (SVP)'))
   ) %>%
   # keep the top 5 terms with the largest precision difference
   dplyr::slice((n()-15):n())
@@ -190,8 +191,8 @@ df_reac <- read_csv(sprintf("%s/figures/source_data/reac_top20.csv", res_dir)) %
   mutate(
     name_cat = factor(name, levels = unique(name[order(precision_diff, decreasing = FALSE)])),
     geneset = factor(geneset, levels = c('SVE', 'SVS'), 
-                     labels = c('Spatially variably expressed but not spliced (SVENS)', 
-                                'Spatially variably spliced (SVS)'))
+                     labels = c('Spatially variably expressed but not variably processed (SVENP)', 
+                                'Spatially variably processed (SVP)'))
   ) %>%
   # keep the top 5 terms with the largest precision difference
   dplyr::slice((n()-15):n())
@@ -200,8 +201,8 @@ m3.1 <- ggplot(df_kegg, aes(x = name_cat, y = precision, group = geneset, fill =
   geom_bar(stat='identity', position='dodge') + 
   labs(y = '', fill = 'Gene set', x = 'KEGG') + 
   coord_flip() +
-  scale_fill_manual(values=c('Spatially variably spliced (SVS)'= '#FF9F1C', 
-                             'Spatially variably expressed but not spliced (SVENS)'= '#2EC4B6')) + 
+  scale_fill_manual(values=c('Spatially variably processed (SVP)'= '#FF9F1C', 
+                             'Spatially variably expressed but not variably processed (SVENP)'= '#2EC4B6')) + 
   theme_classic() + 
   theme(
     text=element_text(size = 12, family = 'Arial'),
@@ -216,8 +217,8 @@ m3.2 <- ggplot(df_reac, aes(x = name_cat, y = precision, group = geneset, fill =
   labs(y = 'Precision (proportion of term genes)', fill = 'Gene set',
        x = 'Reactome') +
   coord_flip() +
-  scale_fill_manual(values=c('Spatially variably spliced (SVS)'= '#FF9F1C', 
-                             'Spatially variably expressed but not spliced (SVENS)'= '#2EC4B6')) + 
+  scale_fill_manual(values=c('Spatially variably processed (SVP)'= '#FF9F1C', 
+                             'Spatially variably expressed but not variably processed (SVENP)'= '#2EC4B6')) + 
   theme_classic() +
   theme(
     text=element_text(size = 12, family = 'Arial'),
@@ -657,6 +658,7 @@ m6 <- cowplot::plot_grid(m6.1, m6.2, nrow = 1, align = 'h', rel_widths = c(1, 1)
 m6
 
 ggsave(sprintf("%s/figures/main_du_rbpr_rank.png", res_dir), m6, width = 8, height = 4)
+ggsave(sprintf("%s/figures/main_du_rbpr_rank.pdf", res_dir), m6, width = 8, height = 4)
 
 
 ## Fig 4I: Example RBP expression
@@ -664,14 +666,26 @@ df_rbp_expr <- read_csv(sprintf("%s/figures/source_data/rbp_expr.csv", res_dir))
   filter(array_col > 15)
 
 # spatial expression of selected RBP
+# rbp_list <- c(
+#   'Arpp21', 'Celf5', 
+#   'Rbfox3', 'Qk', 'Celf2',
+#   'Zfp36l1', 'Pabpc4',
+#   'Cstf3', 'Tent4b', 'Pabpn1'
+# )
+# color_list <- c(
+#   'Arpp21' = '#668586', 'Celf5' = '#668586',
+#   'Rbfox3' = '#8B0000', 'Qk' = '#8B0000', 'Celf2' = '#8B0000', 
+#   'Zfp36l1' = '#0066CC', 'Pabpc4' = '#0066CC', 
+#   'Cstf3' = '#641E16', 'Tent4b' = '#641E16', 'Pabpn1' = '#641E16'
+# )
 rbp_list <- c(
-  'Arpp21', 'Celf5', 
+  'Arpp21', 'Nova2', 
   'Rbfox3', 'Qk', 'Celf2',
   'Zfp36l1', 'Pabpc4',
   'Cstf3', 'Tent4b', 'Pabpn1'
 )
 color_list <- c(
-  'Arpp21' = '#668586', 'Celf5' = '#668586',
+  'Arpp21' = '#668586', 'Nova2' = '#8B0000',
   'Rbfox3' = '#8B0000', 'Qk' = '#8B0000', 'Celf2' = '#8B0000', 
   'Zfp36l1' = '#0066CC', 'Pabpc4' = '#0066CC', 
   'Cstf3' = '#641E16', 'Tent4b' = '#641E16', 'Pabpn1' = '#641E16'
@@ -702,6 +716,7 @@ m7 <- cowplot::plot_grid(plotlist = p_list, nrow = 2, align = 'hv')
 m7
 
 ggsave(sprintf("%s/figures/main_rbp_expr.png", res_dir), m7, width = 12, height = 4)
+ggsave(sprintf("%s/figures/main_rbp_expr.pdf", res_dir), m7, width = 12, height = 4)
 
 
 ## Fig 4I: Plot selected SVS RBPs and their regulators
@@ -881,6 +896,7 @@ for (i in seq_along(peak_to_plot)){
 p <- cowplot::plot_grid(plotlist = p_list, nrow = 1, align = 'hv')
 p
 ggsave(sprintf("%s/figures/svs_cds/ratio_Klc1.png", res_dir), p, width = 5, height = 2.5)
+ggsave(sprintf("%s/figures/svs_cds/ratio_Klc1.pdf", res_dir), p, width = 5, height = 2.5)
 
 # Atp2a2
 gene_to_plot <- 'Atp2a2'
@@ -914,6 +930,7 @@ for (i in seq_along(peak_to_plot)){
 p <- cowplot::plot_grid(plotlist = p_list, nrow = 1, align = 'hv')
 p
 ggsave(sprintf("%s/figures/svs_cds/ratio_Atp2a2.png", res_dir), p, width = 5, height = 2.5)
+ggsave(sprintf("%s/figures/svs_cds/ratio_Atp2a2.pdf", res_dir), p, width = 5, height = 2.5)
 
 # Itsn1
 gene_to_plot <- 'Itsn1'
@@ -948,6 +965,7 @@ for (i in seq_along(peak_to_plot)){
 p <- cowplot::plot_grid(plotlist = p_list, nrow = 1, align = 'hv')
 p
 ggsave(sprintf("%s/figures/svs_cds/ratio_Itsn1.png", res_dir), p, width = 7.5, height = 2.5)
+ggsave(sprintf("%s/figures/svs_cds/ratio_Itsn1.pdf", res_dir), p, width = 7.5, height = 2.5)
 
 # Cdc42
 gene_to_plot <- 'Cdc42'
@@ -982,3 +1000,4 @@ for (i in seq_along(peak_to_plot)){
 p <- cowplot::plot_grid(plotlist = p_list, nrow = 1, align = 'hv')
 p
 ggsave(sprintf("%s/figures/svs_cds/ratio_Cdc42.png", res_dir), p, width = 7.5, height = 2.5)
+ggsave(sprintf("%s/figures/svs_cds/ratio_Cdc42.pdf", res_dir), p, width = 7.5, height = 2.5)
