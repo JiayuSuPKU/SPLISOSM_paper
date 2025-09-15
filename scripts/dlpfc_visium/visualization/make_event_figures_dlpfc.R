@@ -178,6 +178,11 @@ ggsave(
   sprintf("%s/figures/map4_spatial.png", res_dir), 
   p, width = 7.5, height = 2.5, units = "in", dpi = 300
 )
+ggsave(
+  sprintf("%s/figures/map4_spatial.pdf", res_dir), 
+  p, width = 7.5, height = 2.5, units = "in", dpi = 300
+)
+
 
 ## Fig S5E, RBP expression
 # load RBP expression
@@ -211,5 +216,9 @@ p <- cowplot::plot_grid(plotlist = p_list, nrow = 2, align = 'hv')
 p
 ggsave(
   sprintf("%s/figures/sup_rbp_spatial.png", res_dir), 
+  p, width = 5, height = 5, units = "in", dpi = 300
+)
+ggsave(
+  sprintf("%s/figures/sup_rbp_spatial.pdf", res_dir), 
   p, width = 5, height = 5, units = "in", dpi = 300
 )

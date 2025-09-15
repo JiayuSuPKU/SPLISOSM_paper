@@ -50,6 +50,7 @@ write.csv(m2h, paste0(res_dir, "events/m2h_sv_combined.csv"),
           row.names = FALSE, quote = FALSE)
 
 ## load human SV results
+m2h <- read_csv(paste0(res_dir, "events/m2h_sv_combined.csv"))
 m2h_sv_cbs <- mm_sv_cbs %>%
   left_join(m2h, by = c('gene' = 'external_gene_name'))
 
@@ -76,8 +77,8 @@ m1 <- ggplot(df, aes(x = rank, y = pvalue_hsic.ir)) +
     fontface = "italic"
   )+ 
   labs(x = 'Rank (by occurrence)', y = 'Minimum HSIC-IR p-value', 
-       title = 'SVS genes in human DLPFC',
-       color = 'SVS in mouse') +
+       title = 'SVP genes in human DLPFC',
+       color = 'SVP in mouse') +
   scale_y_continuous(transform = c('log10', 'reverse')) + 
   scale_x_log10() + 
   scale_color_manual(values = c('TRUE' = '#8B0000', 'FALSE' = 'darkgray')) +
@@ -140,7 +141,7 @@ m2.1 <- ggplot(df_seq_depth %>% filter(sample != 'mouse'),
              aes(x = sum_count_avg, y = n_svs), color = '#8B0000') +
   geom_text(data = data.frame(x = 7000, y = 760), 
             aes(x = x, y = y), label = 'Mouse CBS', color = '#8B0000') +
-  labs(x = 'Avg total UMI per spot', title = 'Number of SVS genes', y = '') +
+  labs(x = 'Avg total UMI per spot', title = 'Number of SVP genes', y = '') +
   # scale_x_log10() +
   theme_classic() +
   theme(
@@ -184,7 +185,7 @@ s1.1 <- ggplot(df_seq_depth %>% filter(sample != 'mouse'),
              aes(x = sum_count_avg, y = n_svs / n_gene_tested), color = '#8B0000') +
   geom_text(data = data.frame(x = 7000, y = 0.2), 
             aes(x = x, y = y), label = 'Mouse CBS', color = '#8B0000') +
-  labs(x = 'Avg total UMI per spot', title = 'Prop of SVS genes', y = '') +
+  labs(x = 'Avg total UMI per spot', title = 'Prop of SVP genes', y = '') +
   # lims(y = c(0, 1.0)) +
   theme_classic() +
   theme(
@@ -213,7 +214,8 @@ s1.2 <- ggplot(df_seq_depth %>% filter(sample != 'mouse'),
 
 s1 <- cowplot::plot_grid(s1.1, s1.2, ncol = 1, align = 'hv')
 s1
-ggsave(sprintf("%s/figures/sup_propsig_dataset.png", res_dir), s1, width = 2.5, height = 4.5)
+ggsave(sprintf("%s/figures/sup_propsig_dataset.png", res_dir), s1, width = 2.5, height = 4)
+ggsave(sprintf("%s/figures/sup_propsig_dataset.pdf", res_dir), s1, width = 2.5, height = 4)
 
 ## Fig 5d: Overlaps between human and mouse SV genes
 df <- df_svs_pval %>% 
@@ -225,7 +227,7 @@ m3.1 <- ggplot(df, aes(x = occurrence, y = n, group = is_mouse_svs, fill = is_mo
   geom_text(aes(label = n), position = position_fill(vjust = 0.5)) + 
   scale_fill_manual(values = c('TRUE' = '#8B0000', 'FALSE' = 'darkgray')) +
   theme_classic() + 
-  labs(x = 'Occurrence', y = 'Proportion', title = 'Overlap with mouse SVS', fill = '') + 
+  labs(x = 'Occurrence', y = 'Proportion', title = 'Overlap with mouse SVP', fill = '') + 
   theme(
     text = element_text(size = 14, family = 'Arial'),
     plot.title = element_text(size = 14, family = 'Arial'),
@@ -251,6 +253,7 @@ m3.2 <- ggplot(df, aes(x = occurrence, y = n, group = is_mouse_sve, fill = is_mo
 m3 <- cowplot::plot_grid(m3.1, m3.2, ncol = 2, align = 'hv', rel_widths = c(3, 4))
 m3
 ggsave(sprintf("%s/figures/main_sv_occurence.png", res_dir), m3, width = 7, height = 4)
+ggsave(sprintf("%s/figures/main_sv_occurence.pdf", res_dir), m3, width = 7, height = 4)
 
 ## Fig S5C: SVS and SVE occurrence
 # # merge dv_svs_pval and df_sve_pval occurrences size
@@ -289,11 +292,11 @@ df <- df_svs_pval %>%
 s2.1 <- ggplot(df, aes(x = occurrence, y = count_avg, group = interaction(is_mouse_svs, occurrence), 
                         fill = is_mouse_svs)) +
   geom_boxplot(position = 'dodge') + 
-  stat_compare_means(label = 'p.signif') + 
+  stat_compare_means(method = 't.test', label = 'p.signif') + 
   scale_fill_manual(values = c('TRUE' = '#8B0000', 'FALSE' = 'darkgray')) +
   scale_y_log10() + 
   theme_classic() + 
-  labs(x = 'Occurrence', y = 'Avg gene count per spot', fill = 'SVS in mouse', title = 'Human DLPFC SVS') + 
+  labs(x = 'Occurrence', y = 'Avg gene count per spot', fill = 'SVP in mouse', title = 'Human DLPFC SVP') + 
   theme(
     text = element_text(size = 14, family = 'Arial'),
     plot.title = element_text(size = 14, family = 'Arial'),
@@ -307,7 +310,7 @@ df <- df_sve_pval %>%
 s2.2 <- ggplot(df, aes(x = occurrence, y = count_avg, group = interaction(is_mouse_sve, occurrence), 
                fill = is_mouse_sve)) +
   geom_boxplot(position = 'dodge') + 
-  stat_compare_means(label = 'p.signif') + 
+  stat_compare_means(method = 't.test', label = 'p.signif') + 
   scale_fill_manual(values = c('TRUE' = '#8B0000', 'FALSE' = 'darkgray')) +
   scale_y_log10() + 
   theme_classic() + 
@@ -321,6 +324,7 @@ s2.2 <- ggplot(df, aes(x = occurrence, y = count_avg, group = interaction(is_mou
 s2 <- cowplot::plot_grid(s2.1, s2.2, ncol = 2, align = 'hv', rel_widths = c(3, 4))
 s2
 ggsave(sprintf("%s/figures/sup_sv_expr.png", res_dir), s2, width = 8, height = 4)
+ggsave(sprintf("%s/figures/sup_sv_expr.pdf", res_dir), s2, width = 8, height = 4)
 
 ## Fig 6C: Test agreements between replicates
 df_stat <- read.csv(paste0(res_dir, "figures/source_data/sv_agreements_stat_", date, ".csv")) %>%
@@ -334,7 +338,7 @@ df_stat <- read.csv(paste0(res_dir, "figures/source_data/sv_agreements_stat_", d
 m4 <- ggplot(df_stat, aes(x = stat, y = spearmannr, group = interaction(group, stat), fill = group)) + 
   facet_wrap(~comp) + 
   # geom_point(position = position_dodge(width = 0.5), alpha = 0.5) + 
-  stat_compare_means(label = 'p.signif', label.y = 0.95) +
+  stat_compare_means(label = 'p.signif', label.y = 0.95, method = 'kruskal.test') +
   geom_boxplot() + 
   labs(x = '', y = 'Spearmann R', fill = 'Avg gene-level count per spot', 
        title = 'SV test agreements between sample pairs of different') + 
@@ -444,7 +448,7 @@ df_kegg <- read_csv(sprintf("%s/figures/source_data/kegg_shared_top20.csv", res_
   mutate(
     name_cat = factor(name, levels = unique(name[order(precision_diff, decreasing = FALSE)])),
     geneset = factor(geneset, levels = c('SVE', 'SVS'), 
-                     labels = c('SVENS shared with mouse', 'SVS shared with mouse'))
+                     labels = c('SVENP shared with mouse', 'SVP shared with mouse'))
   ) %>%
   arrange(precision_diff, name) %>%
   # keep the top 8 terms with the largest precision difference
@@ -458,7 +462,7 @@ df_reac <- read_csv(sprintf("%s/figures/source_data/reac_shared_top20.csv", res_
     ),
     name_cat = factor(name, levels = unique(name[order(precision_diff, decreasing = FALSE)])),
     geneset = factor(geneset, levels = c('SVE', 'SVS'), 
-                     labels = c('SVENS shared with mouse', 'SVS shared with mouse'))
+                     labels = c('SVENP shared with mouse', 'SVP shared with mouse'))
     ) %>%
   arrange(precision_diff, name) %>%
   # keep the top 8 terms with the largest precision difference
@@ -468,7 +472,7 @@ m6.1 <- ggplot(df_kegg, aes(x = name_cat, y = precision, group = geneset, fill =
   geom_bar(stat='identity', position='dodge') + 
   labs(y = '', fill = 'Gene set', x = 'KEGG') + 
   coord_flip() +
-  scale_fill_manual(values=c('SVENS shared with mouse' = '#007B99', 'SVS shared with mouse' = '#cc6600')) + 
+  scale_fill_manual(values=c('SVENP shared with mouse' = '#007B99', 'SVP shared with mouse' = '#cc6600')) + 
   theme_classic() + 
   theme(
     text=element_text(size = 12, family = 'Arial'),
@@ -483,7 +487,7 @@ m6.2 <- ggplot(df_reac, aes(x = name_cat, y = precision, group = geneset, fill =
   labs(y = 'Precision (proportion of term genes)', fill = 'Gene set',
        x = 'Reactome') +
   coord_flip() +
-  scale_fill_manual(values=c('SVENS shared with mouse' = '#007B99', 'SVS shared with mouse' = '#cc6600')) + 
+  scale_fill_manual(values=c('SVENP shared with mouse' = '#007B99', 'SVP shared with mouse' = '#cc6600')) + 
   theme_classic() +
   theme(
     text=element_text(size = 12, family = 'Arial'),
@@ -505,8 +509,8 @@ df_kegg <- read_csv(sprintf("%s/figures/source_data/kegg_all_top20.csv", res_dir
   mutate(
     name_cat = factor(name, levels = unique(name[order(precision_diff, decreasing = FALSE)])),
     geneset = factor(geneset, levels = c('SVE', 'SVS'), 
-                     labels = c('Spatially variably expressed but not spliced', 
-                                'Spatially variably spliced'))
+                     labels = c('Spatially variably expressed but not variably processed (SVENP)', 
+                                'Spatially variably processed (SVP)'))
   ) %>%
   arrange(precision_diff, name) %>%
   # keep the top 10 terms with the largest precision difference
@@ -516,8 +520,8 @@ df_reac <- read_csv(sprintf("%s/figures/source_data/reac_all_top20.csv", res_dir
   mutate(
     name_cat = factor(name, levels = unique(name[order(precision_diff, decreasing = FALSE)])),
     geneset = factor(geneset, levels = c('SVE', 'SVS'), 
-                     labels = c('Spatially variably expressed but not spliced', 
-                                'Spatially variably spliced'))
+                     labels = c('Spatially variably expressed but not variably processed (SVENP)', 
+                                'Spatially variably processed (SVP)'))
   ) %>%
   arrange(precision_diff, name) %>%
   # keep the top 10 terms with the largest precision difference
@@ -527,8 +531,8 @@ s3.1 <- ggplot(df_kegg, aes(x = name_cat, y = precision, group = geneset, fill =
   geom_bar(stat='identity', position='dodge') + 
   labs(y = '', fill = 'Gene set', x = 'KEGG') + 
   coord_flip() +
-  scale_fill_manual(values=c('Spatially variably spliced'= '#FF9F1C', 
-                             'Spatially variably expressed but not spliced'= '#2EC4B6')) + 
+  scale_fill_manual(values=c('Spatially variably processed (SVP)'= '#FF9F1C', 
+                             'Spatially variably expressed but not variably processed (SVENP)'= '#2EC4B6')) + 
   theme_classic() + 
   theme(
     text=element_text(size = 12, family = 'Arial'),
@@ -544,8 +548,8 @@ s3.2 <- ggplot(df_reac, aes(x = name_cat, y = precision, group = geneset, fill =
        x = 'Reactome') +
   coord_flip() +
   # scale_fill_manual(values=c('SVS'= '#FF9F1C', 'SVENS'= '#2EC4B6')) + 
-  scale_fill_manual(values=c('Spatially variably spliced'= '#FF9F1C', 
-                             'Spatially variably expressed but not spliced'= '#2EC4B6')) + 
+  scale_fill_manual(values=c('Spatially variably processed (SVP)'= '#FF9F1C', 
+                             'Spatially variably expressed but not variably processed (SVENP)'= '#2EC4B6')) + 
   theme_classic() +
   theme(
     text=element_text(size = 12, family = 'Arial'),
@@ -560,6 +564,7 @@ s3 <- cowplot::plot_grid(s3.1, s3.2, nrow = 2, align = 'hv', rel_heights = c(1,1
 s3
 
 ggsave(sprintf("%s/figures/sup_enrich_sv_all_new.png", res_dir), s3, width = 8, height = 4.5)
+ggsave(sprintf("%s/figures/sup_enrich_sv_all_new.pdf", res_dir), s3, width = 8, height = 4.5)
 
 ## Fig 6G: RBP DU regulation
 # load ranked DU results in human
@@ -631,4 +636,5 @@ s4 <- ggplot(df_du_rbp, aes(x = rank, y = pvalue_glmm)) +
 s4
 
 ggsave(sprintf("%s/figures/sup_du_map4.png", res_dir), s4, width = 4, height = 3.5)
+ggsave(sprintf("%s/figures/sup_du_map4.pdf", res_dir), s4, width = 4, height = 3.5)
 
