@@ -61,7 +61,22 @@ do
   # Extract fasta sequence of exon skipping events
   for group in "$dataset"_svs "$dataset"_svens
   do
-    # Aggregate exons in all SE and MX events
+    # Aggregate exons from all AS events except retained intron
+    true > "$res_sample_dir/events/$group.suppa.all_exon.gtf"
+    for event_type in A3 A5 AF AL SE MX; do
+      tail -n +2 "$res_sample_dir/suppa.out/$group/_${event_type}_strict.gtf" >> "$res_sample_dir/events/$group.suppa.all_exon.gtf"
+    done
+
+    # Remove duplicated exons and add exon_id to the gtf file
+    sort -u -k1,1 -k4,4n -k5,5n "$res_sample_dir/events/$group.suppa.all_exon.gtf" | \
+      awk '{print $0" exon_id \"exon_"NR"\";"}' >"$res_sample_dir/events/$group.suppa.all_exon.gtf.tmp"
+    mv "$res_sample_dir/events/$group.suppa.all_exon.gtf.tmp" "$res_sample_dir/events/$group.suppa.all_exon.gtf"
+
+    # Convert the transcript GTF file to BED format
+    awk '{print $1"\t"$4"\t"$5"\t""exon_"NR"\t0\t"$7}' "$res_sample_dir/events/$group.suppa.all_exon.gtf" \
+      > "$res_sample_dir/events/$group.suppa.all_exon.bed"
+
+    # Aggregate exons in all SE and MX events since they are most likely regulated by splicing factors
     true > "$res_sample_dir/events/$group.suppa.exon.gtf"
     for event_type in SE MX; do
       tail -n +2 "$res_sample_dir/suppa.out/$group/_${event_type}_strict.gtf" >> "$res_sample_dir/events/$group.suppa.exon.gtf"
