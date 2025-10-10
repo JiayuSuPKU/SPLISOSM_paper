@@ -136,68 +136,139 @@ gr_xenium <- read_xenium_bed(
 )
 
 ### Compare event overlaps and visualize as barplots
-# ONT events compared to SR and Xenium events
+## ONT vs SR comparison
 p1.1 <- data.frame(
-  group = c("Total ONT-variable", "Overlapped with SR", "In Xenium 5K panel"),
+  group = c("Total ONT-variable", "Overlapped with SR"),
   count = c(length(gr_ont),
-            length(unique(queryHits(findOverlaps(gr_ont, gr_sr)))),
+            length(unique(queryHits(findOverlaps(gr_ont, gr_sr))))
+  )
+) %>%
+  ggplot(aes(x = group, y = count, fill = group)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = count), vjust = 0) +
+  scale_x_discrete(limits = c("Overlapped with SR", "Total ONT-variable")) +
+  labs(
+    title = "ONT spatially variable exons shared by CBS1 and CBS2",
+    x = "",
+    y = "Number of exons",
+    fill = ""
+  ) +
+  coord_flip() +
+  annotate("text", label = c("Total ONT-variable exons", "Overlapped with SR-variable exons"), 
+           x = c(2, 1), y = c(50, 50), hjust = -0.1, vjust = 0.5, size = 5) +
+  theme_classic() +
+  theme(
+    text = element_text(size = 12),
+    legend.position = "none",
+    legend.background = element_blank(),
+    axis.text = element_text(size = 12),
+    axis.text.y = element_blank()
+  )
+
+p1.2 <- data.frame(
+  group = c("Total SR-variable", "Overlapped with ONT"),
+  count = c(length(gr_sr),
+            length(unique(queryHits(findOverlaps(gr_sr, gr_ont))))
+  )
+) %>%
+  ggplot(aes(x = group, y = count, fill = group)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = count), vjust = 0) +
+  scale_x_discrete(limits = c("Overlapped with ONT", "Total SR-variable")) +
+  labs(
+    title = "SR spatially variable exons in Visium CBS",
+    x = "",
+    y = "Number of exons",
+    fill = ""
+  ) +
+  coord_flip() +
+  annotate("text", label = c("Total SR-variable exons", "Overlapped with ONT-variable exons"), 
+           x = c(2, 1), y = c(50, 50), hjust = -0.1, vjust = 0.5, size = 5) +
+  theme_classic() +
+  theme(
+    text = element_text(size = 12),
+    legend.position = "none",
+    legend.background = element_blank(),
+    axis.text = element_text(size = 12),
+    axis.text.y = element_blank()
+  )
+
+p1 <- cowplot::plot_grid(p1.1, p1.2, nrow = 2, align = 'hv')
+p1
+
+ggsave(
+  sprintf("%s/results/xenium_5k_mouse_brain/figures/ont_sr_exon.pdf", project_dir), 
+  p1, width = 4.5, height = 4
+)
+
+
+# ONT events compared to SR and Xenium events
+p2.1 <- data.frame(
+  group = c("Total ONT-variable", "In Xenium Prime 5K panel"),
+  count = c(length(gr_ont),
             length(unique(queryHits(findOverlaps(gr_ont, gr_xenium, ignore.strand = TRUE))))
   )
 ) %>%
   ggplot(aes(x = group, y = count, fill = group)) +
   geom_bar(stat = "identity") +
-  geom_text(aes(label = count), vjust = 0.5) +
-  scale_x_discrete(limits = c("Total ONT-variable", "Overlapped with SR", "In Xenium 5K panel")) +
+  geom_text(aes(label = count), vjust = 0) +
+  scale_x_discrete(limits = c("In Xenium Prime 5K panel", "Total ONT-variable")) +
   labs(
-    title = "ONT exon detectability",
-    x = "Group",
+    title = "ONT exon detectability in predesigned Xenium panel",
+    x = "",
     y = "Number of exons",
     fill = ""
   ) +
+  coord_flip() +
+  annotate("text", label = c("Total ONT-variable exons", "In Xenium Prime 5K panel"), 
+           x = c(2, 1), y = c(50, 50), hjust = -0.1, vjust = 0.5, size = 5) +
   theme_classic() +
   theme(
     text = element_text(size = 12),
-    # legend.position = "none",
-    # axis.text.x = element_text(angle = 45, hjust = 1, size = 12)
-    legend.position = "inside",
-    legend.position.inside = c(0.7, 0.8),
+    legend.position = "none",
     legend.background = element_blank(),
     axis.text = element_text(size = 12),
-    axis.text.x = element_blank()
+    axis.text.y = element_blank()
   )
+p2.1
 
 # SR events compared to ONT and Xenium events
-p1.2 <- data.frame(
-  group = c("Total SR-variable", "Overlapped with ONT", "In Xenium 5K panel"),
+p2.2 <- data.frame(
+  group = c("Total SR-variable", "In Xenium Prime 5K panel"),
   count = c(length(gr_sr),
-            length(unique(queryHits(findOverlaps(gr_sr, gr_ont)))),
             length(unique(queryHits(findOverlaps(gr_sr, gr_xenium, ignore.strand = TRUE))))
   )
 ) %>%
   ggplot(aes(x = group, y = count, fill = group)) +
   geom_bar(stat = "identity") +
-  geom_text(aes(label = count), vjust = 0.5) +
-  scale_x_discrete(limits = c("Total SR-variable", "Overlapped with ONT", "In Xenium 5K panel")) +
+  geom_text(aes(label = count), vjust = 0) +
+  scale_x_discrete(limits = c("In Xenium Prime 5K panel", "Total SR-variable")) +
   labs(
-    title = "SR exon detectability",
-    x = "Group",
+    title = "SR exon detectability in predesigned Xenium panel",
+    x = "",
     y = "Number of exons",
     fill = ""
   ) +
+  coord_flip() +
+  annotate("text", label = c("Total SR-variable exons", "In Xenium Prime 5K panel"), 
+           x = c(2, 1), y = c(100, 100), hjust = -0.1, vjust = 0.5, size = 5) +
   theme_classic() +
   theme(
     text = element_text(size = 12),
-    # legend.position = "none",
-    # axis.text.x = element_text(angle = 45, hjust = 1, size = 12)
-    legend.position = "inside",
-    legend.position.inside = c(0.7, 0.8),
+    legend.position = "none",
     legend.background = element_blank(),
     axis.text = element_text(size = 12),
-    axis.text.x = element_blank()
+    axis.text.y = element_blank()
   )
+p2.2
 
-p1 <- cowplot::plot_grid(p1.1, p1.2, nrow = 1, align = 'hv')
-p1
+p2 <- cowplot::plot_grid(p2.1, p2.2, nrow = 2, align = 'hv')
+p2
+
+ggsave(
+  sprintf("%s/results/xenium_5k_mouse_brain/figures/xenium_exon.pdf", project_dir), 
+  p2, width = 4.5, height = 4
+)
 
 ## (2) Compare HSIC-IR p-values across technologies
 ### load SV results from ONT, SR, and Xenium datasets
@@ -241,10 +312,81 @@ df_sv_xenium <- df_sv_xenium %>%
     is_xenium_gene = TRUE
   )
 
+## UpSet plot for ONT and SR SVP test results
+df <- data.frame(gene = purrr::reduce(
+  list(df_sv_sr$gene, df_sv_ont1$gene, df_sv_ont2$gene), union
+)) %>%
+  mutate(
+    is_sr_svs = gene %in% df_sv_sr$gene[df_sv_sr$is_sr_svs],
+    is_ont_cbs1_svs = gene %in% df_sv_ont1$gene[df_sv_ont1$is_ont_svs],
+    is_ont_cbs2_svs = gene %in% df_sv_ont2$gene[df_sv_ont2$is_ont_svs]
+  )
 
-### Boxplot of p-values per gene groups
+# Create binary matrix for UpSetR
+upset_data <- list(
+  `SR SVP` = df %>% filter(is_sr_svs) %>% pull(gene),
+  `ONT (CBS1) SVP` = df %>% filter(is_ont_cbs1_svs) %>% pull(gene),
+  `ONT (CBS2) SVP` = df %>% filter(is_ont_cbs2_svs) %>% pull(gene)
+)
+
+# Create the UpSet plot
+p1.3 <- upset(
+  fromList(upset_data),
+  sets = c("SR SVP", "ONT (CBS1) SVP", "ONT (CBS2) SVP"),
+  order.by = c("freq", "degree"),
+  keep.order = TRUE,
+  text.scale = 2,
+  mb.ratio = c(0.6, 0.4),
+  queries = list(
+    list(
+      query = intersects,
+      params = list("SR SVP", "ONT (CBS1) SVP", "ONT (CBS2) SVP"), color = "red", active = T,
+      query.name = "Detected by more than one technology"
+    ),
+    list(
+      query = intersects,
+      params = list("ONT (CBS1) SVP", "ONT (CBS2) SVP"), color = "red", active = T,
+      query.name = "Detected by more than one technology"
+    )
+  )
+)
+pdf(
+  sprintf("%s/results/xenium_5k_mouse_brain/figures/upset_ont_vs_sr.pdf", project_dir), 
+  width = 6, height = 4
+)
+show(p1.3)
+dev.off()
+
+# Chi-square test for ONT-SVP and SR-SVP events with heatmap
+tbl <- df_sv_sr %>%
+  mutate(
+    ONT_SVP = gene %in% df_sv_ont$gene[df_sv_ont$is_ont_svs],
+    SR_SVP = is_sr_svs
+  ) %>%
+  count(ONT_SVP, SR_SVP)
+
+p1.4 <- ggplot(tbl, aes(x = ONT_SVP, y = SR_SVP)) +
+  geom_tile(aes(fill = n), color = "white") +
+  geom_text(aes(label = n), color = "black", size = 5) +
+  scale_fill_gradient(low = "lightblue", high = "mediumblue") +
+  labs(
+    title = sprintf("ONT-SVP genes show higher 3'end spatial variability\n(p-value = %.2g, chi-sq test)", chisq.test(matrix(tbl$n, nrow=2))$p.value),
+    x = "Is ONT SVP",
+    y = "Is SR SVP",
+    fill = "Count"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 12),
+    text = element_text(size = 12),
+    legend.position = "none",
+    axis.text = element_text(size = 12)
+  )
+p1.4
+
+## Boxplot of p-values per gene groups
 # Plot the SR HSIC-IR pvalue distribution of different ONT groups
-p2.1 <- df_sv_sr %>%
+p1.5 <- df_sv_sr %>%
   filter(gene %in% df_sv_ont$gene) %>%
   mutate(
     is_ont_svs = gene %in% df_sv_ont$gene[df_sv_ont$is_ont_svs],
@@ -252,8 +394,8 @@ p2.1 <- df_sv_sr %>%
   mutate(
     # add obs number to is_ont_svs label
     x = ifelse(is_ont_svs, 
-               paste0("T (n=", sum(is_ont_svs), ")"), 
-               paste0("F (n=", sum(!is_ont_svs), ")"))
+               paste0("True (n=", sum(is_ont_svs), ")"), 
+               paste0("False (n=", sum(!is_ont_svs), ")"))
   ) %>%
   ggplot(aes(x = x, y = `pvalue_hsic-ir`, fill = is_ont_svs)) +
   geom_boxplot() +
@@ -274,9 +416,19 @@ p2.1 <- df_sv_sr %>%
     axis.text = element_text(size = 12),
     # axis.title.x = element_blank()
   )
+p1.5
 
+p1 <- cowplot::plot_grid(p1.4, p1.5, nrow = 1, rel_widths = c(1, 1))
+p1
+
+ggsave(
+  sprintf("%s/results/xenium_5k_mouse_brain/figures/ont_sr_pval.pdf", project_dir), 
+  p1, width = 6, height = 3.5
+)
+
+### Boxplot of p-values per gene groups
 # plot the Xenium HSIC-IR pvalue distribution of different ONT groups
-p2.2 <- df_sv_xenium %>%
+p2.3 <- df_sv_xenium %>%
   filter(gene %in% df_sv_ont$gene) %>%
   mutate(
     is_ont_svs = gene %in% df_sv_ont$gene[df_sv_ont$is_ont_svs],
@@ -284,20 +436,21 @@ p2.2 <- df_sv_xenium %>%
   mutate(
     # add obs number to is_ont_svs label
     x = ifelse(is_ont_svs, 
-               paste0("T (n=", sum(is_ont_svs), ")"), 
-               paste0("F (n=", sum(!is_ont_svs), ")"))
+               paste0("True (n=", sum(is_ont_svs), ")"), 
+               paste0("False (n=", sum(!is_ont_svs), ")"))
   ) %>%
   ggplot(aes(x = x, y = `pvalue_hsic-ir`, fill = is_ont_svs)) +
   geom_boxplot() +
-  stat_compare_means() + 
+  stat_compare_means(label.x.npc = 0.5, label.y.npc = 0.5) + 
   scale_y_log10() + 
   scale_fill_manual(values = c("grey", "red")) +
   labs(
-    title = "ONT vs Xenium",
+    title = "ONT-based SVP genes show higher Xenium exon variability",
     x = "Is ONT SVP",
     y = "HSIC-IR p-value (Xenium Prime 5K)",
     fill = "Is ONT SVP"
   ) +
+  coord_flip() + 
   theme_classic() +
   theme(
     # legend.position = "bottom",
@@ -308,7 +461,7 @@ p2.2 <- df_sv_xenium %>%
   )
 
 # plot the Xenium HSIC-IR pvalue distribution of different SR groups
-p2.3 <- df_sv_xenium %>%
+p2.4 <- df_sv_xenium %>%
   filter(gene %in% df_sv_sr$gene) %>%
   mutate(
     is_sr_svs = gene %in% df_sv_sr$gene[df_sv_sr$is_sr_svs],
@@ -316,20 +469,21 @@ p2.3 <- df_sv_xenium %>%
   mutate(
     # add obs number to is_sr_svs label
     x = ifelse(is_sr_svs, 
-               paste0("T (n=", sum(is_sr_svs), ")"), 
-               paste0("F (n=", sum(!is_sr_svs), ")"))
+               paste0("True (n=", sum(is_sr_svs), ")"), 
+               paste0("False (n=", sum(!is_sr_svs), ")"))
   ) %>%
   ggplot(aes(x = x, y = `pvalue_hsic-ir`, fill = is_sr_svs)) +
   geom_boxplot() +
-  stat_compare_means() + 
+  stat_compare_means(label.x.npc = 0.5, label.y.npc = 0.5) + 
   scale_y_log10() + 
   scale_fill_manual(values = c("grey", "red")) +
   labs(
-    title = "SR vs Xenium",
+    title = "SR-based SVP genes show higher Xenium exon variability",
     x = "Is SR SVP",
     y = "HSIC-IR p-value (Xenium Prime 5K)",
     fill = "Is SR SVP"
   ) +
+  coord_flip() + 
   theme_classic() +
   theme(
     # legend.position = "bottom",
@@ -338,22 +492,16 @@ p2.3 <- df_sv_xenium %>%
     axis.text = element_text(size = 12),
     # axis.title.x = element_blank()
   )
+p2_combined1 <- cowplot::plot_grid(p2.3, p2.4, nrow = 2)
+p2_combined1
 
-p2 <- cowplot::plot_grid(p2.1, p2.2, p2.3, nrow = 1)
-p2
+p2_combined <- cowplot::plot_grid(p2, NULL, p2_combined1, nrow = 1, rel_widths = c(1, 0.1, 1.4))
+p2_combined
 
-p <- cowplot::plot_grid(p1, NULL, p2, nrow = 1, rel_widths = c(1, 0.1, 1.5))
-p
-
-# save to PNG
+# save to PDF
 ggsave(
-  sprintf("%s/results/xenium_5k_mouse_brain/figures/tech_comparison.png", project_dir), 
-  p, width = 16, height = 3.5
-)
-
-ggsave(
-  sprintf("%s/results/xenium_5k_mouse_brain/figures/tech_comparison.pdf", project_dir), 
-  p, width = 16, height = 3.5
+  sprintf("%s/results/xenium_5k_mouse_brain/figures/xenium_tech_comparison.pdf", project_dir), 
+  p2_combined, width = 15, height = 3.5
 )
 
 ###
