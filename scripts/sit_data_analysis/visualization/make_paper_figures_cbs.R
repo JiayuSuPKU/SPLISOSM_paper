@@ -48,11 +48,21 @@ clu_palette <- setNames(
 clu_palette['Retrosplenial area'] <- '#2C3E50'
 
 # reference palette
+# clu_palette2 <- setNames(
+#   RColorBrewer::brewer.pal(12, 'Set3'),
+#   df_clu$region %>% unique() %>% sort()
+# )
+# clu_palette2['CA3'] <- '#2C3E50'
+
+color_lists <- c(
+  "#1A476FFF", "#90353BFF", "#55752FFF","#C10534FF", "#CAC27EFF",
+  "#E37E00FF",  "#D9D9D9", "#6E8E84FF", "#4890C0FF", "#FFD200FF", 
+  "#2D6D66FF", "#9C8847FF", "#BFA19CFF", "#7B92A8FF", "#D9E6EBFF"
+)
 clu_palette2 <- setNames(
-  RColorBrewer::brewer.pal(12, 'Set3'),
+  color_lists[1:12],
   df_clu$region %>% unique() %>% sort()
 )
-clu_palette2['CA3'] <- '#2C3E50'
 
 # Short-reads-based reference annotation
 m1 <- ggplot(df_clu, aes(x = array_col, y = - array_row)) + 
