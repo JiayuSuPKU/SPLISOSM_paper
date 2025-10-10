@@ -1789,3 +1789,207 @@ for (svs in svs_to_plot){
 p <- cowplot::plot_grid(plotlist = p_list, nrow = 1)
 p
 ggsave(sprintf("%s/figures/svs_cds/du_top5.png", res_dir), p, width = 20, height = 3)
+
+### Mbp TREND events
+library(org.Mm.eg.db)
+
+gene_to_plot <- 'Mbp'
+peak_to_plot <- svs_bed %>% filter(gene == gene_to_plot) %>% pull(peak_name)
+cov <- BamFile(sprintf("%s/events/Mbp.bam", res_dir)) %>%
+  readGAlignments() %>% coverage() %>% 
+  as(., 'GRanges')
+exon_gtf <- import.gff(sprintf("%s/events/Mbp.events.gtf", res_dir)) %>%
+  mutate(
+    peak_name = transcript_id,
+    transcript_id = transcript_name
+  )
+
+# prepare reference for plotting
+subset_ref_gr <- ensembl_gtf[
+  (ensembl_gtf$gene_name == gene_to_plot) &
+    (ensembl_gtf$transcript_name %in% c('Mbp-201', 'Mbp-202', 'Mbp-203', 'Mbp-204', 'Mbp-205'))
+]
+subset_ref_gr$transcript_id <- subset_ref_gr$transcript_name
+subset_ref_gr$phase[subset_ref_gr$type == 'stop_codon'] <- NA
+subset_ref_as <- assembly(
+  Genome = 'custom',
+  TxDb = makeTxDbFromGRanges(subset_ref_gr),
+  OrgDb = org.Mm.eg.db,
+  gene.id.column = 'ENSEMBL',
+  display.column = 'SYMBOL'
+)
+
+# prepare SR events for plotting
+subset_sr_bed <- svs_bed %>% filter(gene == gene_to_plot)
+subset_sr_as <- assembly(
+  Genome = 'custom',
+  TxDb = makeTxDbFromGRanges(exon_gtf),
+  OrgDb = org.Mm.eg.db,
+  gene.id.column = 'ENSEMBL',
+  display.column = 'SYMBOL'
+)
+
+# genomic coordinates
+chrom <- seqnames(subset_ref_gr)[1] %>% as.character() # assuming all transcripts are on the same chromosome
+chromstart <- min(start(subset_ref_gr)) + 78000
+chromend <- max(end(subset_ref_gr))
+strand <- strand(subset_ref_gr)[1] %>% as.character()
+n_isoforms <- subset_ref_gr$transcript_name %>% unique() %>% length()
+
+png(
+  sprintf('%s/figures/peak_Mbp.png', res_dir),
+  width = 9.5, height = 3, units = "in", res = 300
+)
+
+# create new page
+pageCreate(width = 9.5, height = 3, default.units = "inches", showGuides = TRUE)
+
+# plot and place ref transcripts
+height_ref = 0.3 * n_isoforms
+plotTranscripts(
+  chrom = chrom, chromstart = chromstart, chromend = chromend,
+  assembly = subset_ref_as,
+  labels = 'transcript', fill = '#0066CC', 
+  stroke = 0.5, fontsize = 10,
+  x = 0.25, y = 0, width = 9, height = height_ref,
+  just = c("left", "top"), default.units = "inches",
+)
+
+# plot SR bam coverage
+plotSignal(
+  cov,
+  chrom = chrom, chromstart = chromstart, chromend = chromend,
+  assembly = subset_ref_as, x = 0.25, y = height_ref + 0.2, 
+  width = 9, height = 0.3,
+  just = c("left", "top"), default.units = "inches", 
+  linecolor = '#8E44AD', fill = '#8E44AD',
+  scale = T, fontsize = 10
+)
+plotSegments(
+  x0 = 0.25, x1 = 9.25, y0 = height_ref + 0.5, y1 = height_ref + 0.5,
+)
+
+# plot TREND structure
+plotTranscripts(
+  chrom = chrom, chromstart = chromstart, chromend = chromend,
+  assembly = subset_sr_as,
+  labels = 'transcript', fill = '#E23D28', 
+  stroke = 0.5, fontsize = 10,
+  x = 0.25, y = height_ref, width = 9, height = 1.2,
+  just = c("left", "top"), default.units = "inches",
+)
+plotText(
+  label = 'Mbp-Event3', fontsize = 10, fontcolor = '#E23D28',
+  x = 8.8, y = 2.4,
+  just = c("right", "bottom"), default.units = "inches"
+)
+plotText(
+  label = 'Mbp-Event4', fontsize = 10, fontcolor = '#E23D28',
+  x = 9, y = 2.15,
+  just = c("right", "bottom"), default.units = "inches"
+)
+plotText(
+  label = 'Mbp-Event5', fontsize = 10, fontcolor = '#E23D28',
+  x = 9.4, y = 2.6,
+  just = c("right", "bottom"), default.units = "inches"
+)
+
+# Plot RTS position
+rts <- data.frame(
+  seqnames = c('chr18', 'chr18'), 
+  start = c(82584527 - 50, 82585000),
+  end = c(82584547 + 50, 82585500),
+  width = c(21, 501),
+  strand = c('+', '+'),
+  name = c('RTS', 'RLR')
+) %>%
+  GRanges()
+plotRanges(
+  rts,
+  chrom = chrom, chromstart = chromstart, chromend = chromend,
+  assembly = subset_ref_as, collapse = FALSE,
+  x = 0.25, y = 1.1, width = 9, height = 0.2,
+  just = c("left", "top"), default.units = "inches",
+  fill = c('#8B0000')
+)
+plotText(
+  label = 'RNA trafficking sequence (RTS, 21nt)', 
+  fontsize = 10, fontcolor = '#8B0000', x = 8.9, y = 1.15,
+  just = c("right", "bottom"), default.units = "inches"
+)
+plotText(
+  label = 'RNA localization element (RLR)', 
+  fontsize = 10, fontcolor = '#8B0000', x = 9.5, y = 1.41,
+  just = c("right", "bottom"), default.units = "inches"
+)
+
+# Plot genome scale
+plotGenomeLabel(
+  chrom = chrom, chromstart = chromstart, chromend = chromend,
+  assembly = subset_ref_as, fontsize = 10,
+  x = 0.25, y = height_ref + 1.25,
+  length = 9, default.units = "inches",
+)
+
+# Plot strand info
+label = ifelse(strand == '+', "+ strand (5'>3')", "- strand (3'<5')")
+label = paste0(gene_to_plot, ', ', label)
+plotText(
+  label = label, fontsize = 10,
+  x = 0.5, y = 0.2,
+  just = "left", default.units = "inches"
+)
+pageGuideHide()
+dev.off()
+
+# spatial peak expression
+p_list <- c()
+for (i in seq_along(peak_to_plot)){
+  p <- df_svs_ratio %>% filter(
+    peak_name == peak_to_plot[i], 
+    layer == 'log1p',
+    array_col > 15
+  ) %>%
+    ggplot(aes(x = array_col, y = - array_row, color = ratio)) + 
+    geom_point(size = 0.5) +
+    labs(color = '', title = peak_to_plot[i]) + 
+    scale_color_distiller(palette = 'Reds', direction = 1) +
+    theme_void() + 
+    theme(
+      text = element_text(size = 12, family = 'Arial'),
+      strip.text = element_text(size = 12, family = 'Arial'),
+      plot.title = element_text(hjust = 0.5, size = 12, family = 'Arial'),
+      legend.position = 'right',
+      legend.text = element_text(size = 12, family = 'Arial'),
+      legend.key.width = unit(0.1, "in"),
+      legend.key.height = unit(0.3, "in")
+    )
+  p_list <- c(p_list, list(p))
+}
+
+# spatial peak usage
+for (i in seq_along(peak_to_plot)){
+  p <- df_svs_ratio %>% filter(
+    peak_name == peak_to_plot[i], 
+    layer == 'ratios_obs',
+    array_col > 15
+  ) %>%
+    ggplot(aes(x = array_col, y = - array_row, color = ratio)) + 
+    geom_point(size = 0.5) +
+    labs(color = '', title = peak_to_plot[i]) + 
+    scale_color_distiller(palette = 'Spectral') +
+    theme_void() + 
+    theme(
+      text = element_text(size = 12, family = 'Arial'),
+      strip.text = element_text(size = 12, family = 'Arial'),
+      plot.title = element_text(hjust = 0.5, size = 12, family = 'Arial'),
+      legend.position = 'right',
+      legend.text = element_text(size = 12, family = 'Arial'),
+      legend.key.width = unit(0.1, "in"),
+      legend.key.height = unit(0.3, "in")
+    )
+  p_list <- c(p_list, list(p))
+}
+p <- cowplot::plot_grid(plotlist = p_list, nrow = 2, align = 'hv')
+p
+ggsave(sprintf("%s/figures/log1p_%s.png", res_dir, gene_to_plot), p, width = 2.5*5, height = 5)
